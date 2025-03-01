@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Web to Google Docs - Auto</title>
+  <style>
+    body {
+      width: 300px;
+      padding: 15px;
+      font-family: Arial, sans-serif;
+    }
+    h2 {
+      color: #4285F4;
+      margin-top: 0;
+    }
+    button {
+      margin: 5px 0;
+      padding: 10px;
+      width: 100%;
+      background-color: #4285F4;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    button:hover {
+      background-color: #3367D6;
+    }
+    button:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
+    }
+    input {
+      width: 100%;
+      padding: 8px;
+      margin: 5px 0;
+      box-sizing: border-box;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .status {
+      margin-top: 15px;
+      padding: 10px;
+      font-size: 14px;
+      border-radius: 4px;
+      background-color: #f5f5f5;
+    }
+    .error {
+      background-color: #ffebee;
+      color: #d32f2f;
+    }
+    .success {
+      background-color: #e8f5e9;
+      color: #388e3c;
+    }
+    .info-box {
+      margin-top: 15px;
+      padding: 10px;
+      background-color: #e3f2fd;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+    .status-indicator {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-right: 5px;
+    }
+    .active {
+      background-color: #4caf50;
+    }
+    .inactive {
+      background-color: #f44336;
+    }
+  </style>
+</head>
+<body>
+  <h2>Auto Copy to Google Doc</h2>
+  
+  <div class="status-bar">
+    <p>
+      <span class="status-indicator" id="auth-indicator"></span>
+      <strong>Auth Status:</strong> <span id="auth-status">Not authorized</span>
+    </p>
+  </div>
+  
+  <div>
+    <label for="docId">Google Doc ID or URL:</label>
+    <input type="text" id="docId" placeholder="Paste Google Doc ID or URL here">
+  </div>
+  
+  <div>
+    <button id="authorize">Authorize with Google</button>
+    <button id="saveSettings">Save Settings</button>
+    <button id="testPaste">Test with Current Clipboard</button>
+  </div>
+  
+  <div style="margin-top: 15px;">
+    <label style="display: flex; align-items: center;">
+      <input type="checkbox" id="includeSourceUrls" style="margin-right: 8px;" checked>
+      Include source URL references
+    </label>
+  </div>
+  
+  <div style="margin-top: 8px;">
+    <a href="#" id="clearAuth" style="color: #4285F4; font-size: 12px; text-decoration: none;">Change Google Account</a>
+  </div>
+  
+  <div class="info-box">
+    <p><strong>How it works:</strong> When you copy text from any webpage, it will automatically be added to your Google Doc.</p>
+    <p><strong>Tip:</strong> Make sure you've clicked Authorize and saved your Google Doc ID.</p>
+  </div>
+  
+  <div class="status" id="status">Ready to use</div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

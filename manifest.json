@@ -1,0 +1,46 @@
+{
+  "manifest_version": 3,
+  "name": "Web to Google Docs - Pro",
+  "version": "1.0",
+  "description": "Automatically adds copied text to a Google Doc",
+  "permissions": [
+    "storage",
+    "clipboardRead",
+    "identity", 
+    "tabs",
+    "activeTab",
+    "clipboardWrite"
+  ],
+  "host_permissions": [
+    "https://docs.googleapis.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "images/icon16.png",
+      "48": "images/icon48.png",
+      "128": "images/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "images/icon16.png",
+    "48": "images/icon48.png",
+    "128": "images/icon128.png"
+  },
+  "oauth2": {
+    "client_id": "54418607309-o3iheqc3p702lughaclab5f113tv0e3q.apps.googleusercontent.com",
+    "scopes": [
+      "https://www.googleapis.com/auth/documents"
+    ]
+  },
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvxZQ9Fv1LvLJSB4eKxJF5MRg0hMRoUEeWJ1/YKfp/YGfp3G2+QdD1TLFS3MuYdHSKvbmpeYd/QlP79hk83xSEYPEY4SjW2jiZhoJtJWA9VKPEzkb0nNRmGTEkJ6iOJHYjLiJQ6k9S7IQhklB1uv4jNcHYbXJiDawMht1GAZm0RlCdl8bfDLEraVLHEXdYF8AZ7HB8BgGczUu9HmTRi+QDioU4mDyTZSf40+XzV1iHUyAxwvvXnJgYYLCjDwqGHPkiWXfVWgaUzogUX1gfQBKB8kcnQYJTpzPFdYHnfFcsPMngw6NmhHAHJSEG7fezVrbYqLcU2JWEeblBwIDAQAB"
+}
