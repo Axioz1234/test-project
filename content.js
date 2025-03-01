@@ -23,6 +23,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 // Track when we've handled a copy to avoid duplicates
 let lastProcessedText = '';
 let lastProcessTime = 0;
+let processingInProgress = false;
 
 // Method 1: Standard copy event listener
 document.addEventListener('copy', function(event) {
@@ -108,13 +109,27 @@ function handleCopyEvent() {
 
 // Send text to background script with better error handling
 function sendTextToBackgroundScript(text) {
+  // Prevent duplicate sending
+  if (processingInProgress || (text === lastProcessedText && Date.now() - lastProcessTime < 3000)) {
+    console.log("📋 Skipping duplicate text processing");
+    return;
+  }
+  
+  // Mark as processing and update last processed text
+  processingInProgress = true;
+  lastProcessedText = text;
+  lastProcessTime = Date.now();
+  
   try {
-    chrome.runtime.sendMessage({
-      action: 'textCopied',
-      text: text,
-      url: window.location.href,
-      title: document.title
-    }, function(response) {
+    // Get the includeSourceUrls preference before sending
+    chrome.storage.local.get(['includeSourceUrls', 'processingId'], function(result) {
+      chrome.runtime.sendMessage({
+        action: 'textCopied',
+        text: text,
+        url: result.includeSourceUrls ? window.location.href : null,
+        title: result.includeSourceUrls ? document.title : null,
+        processingId: result.processingId // Pass along the processing ID for deduplication
+      }, function(response) {
       if (chrome.runtime.lastError) {
         console.error("📋 Runtime error:", chrome.runtime.lastError);
         // Still show a notification even if there's a connection error
@@ -133,8 +148,14 @@ function sendTextToBackgroundScript(text) {
         // Still show a notification
         showNotification("Text will be processed", false);
       }
+      
+      // Reset processing flag after response
+      processingInProgress = false;
+    });
     });
   } catch (e) {
+    // Reset processing flag on error
+    processingInProgress = false;
     console.error("📋 Exception sending to background:", e);
     // Still show a positive notification since background monitoring should catch it
     showNotification("Text will be processed", false);

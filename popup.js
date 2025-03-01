@@ -44,8 +44,8 @@ function updateUI() {
     }
     
     // Update source URLs checkbox
-    // Default to true if not set
-    const includeSourceUrls = result.includeSourceUrls !== false;
+    // Use the actual value, don't default to true
+    const includeSourceUrls = result.includeSourceUrls;
     document.getElementById('includeSourceUrls').checked = includeSourceUrls;
   });
 }

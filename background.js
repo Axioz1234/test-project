@@ -27,20 +27,24 @@ function setupClipboardMonitoring() {
 // Handle copied text directly
 function handleCopiedText(text) {
   // Check for duplicate content to avoid double-pasting
-  chrome.storage.local.get(['lastCopiedText', 'lastCopyTime'], function(stored) {
-    // If this is the same text and it was copied in the last 2 seconds, skip it
+  chrome.storage.local.get(['lastCopiedText', 'lastCopyTime', 'processingId'], function(stored) {
+    // If this is the same text and it was copied in the last 3 seconds, skip it
     const now = Date.now();
     if (stored.lastCopiedText === text && 
         stored.lastCopyTime && 
-        (now - stored.lastCopyTime < 2000)) {
+        (now - stored.lastCopyTime < 3000)) {
       console.log("Duplicate content detected, skipping paste");
       return;
     }
     
+    // Generate a unique processing ID for this copy operation
+    const processingId = 'copy_' + now + '_' + Math.random().toString(36).substring(2, 10);
+    
     // Update the last copied text for future duplicate checks
     chrome.storage.local.set({
       lastCopiedText: text,
-      lastCopyTime: now
+      lastCopyTime: now,
+      processingId: processingId
     });
     
     // Get the active tab for source information
@@ -61,7 +65,7 @@ function handleCopiedText(text) {
         }
         
         // Check if we should include source URLs
-        const includeSourceUrls = result.includeSourceUrls !== false;
+        const includeSourceUrls = result.includeSourceUrls;
         
         console.log("Auto-pasting text to Google Doc:", result.docId);
         console.log("Include source URLs:", includeSourceUrls);
@@ -175,19 +179,38 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
       return true;
     }
     
-    // Get the Google Doc ID
-    chrome.storage.local.get(['docId'], function(result) {
-      if (!result.docId) {
-        console.log("No Google Doc ID found");
-        sendResponse({success: false, error: "No Google Doc ID set. Please open extension popup and set a Doc ID"});
+    // Check if this is a duplicate request using processingId
+    chrome.storage.local.get(['lastProcessedId'], function(stored) {
+      if (request.processingId && stored.lastProcessedId === request.processingId) {
+        console.log("Duplicate processing request detected, skipping");
+        sendResponse({success: true, note: "Duplicate request skipped"});
         return;
       }
       
+      // Store this request's processing ID to prevent duplicates
+      if (request.processingId) {
+        chrome.storage.local.set({lastProcessedId: request.processingId});
+      }
+      
+      // Get the Google Doc ID
+      chrome.storage.local.get(['docId'], function(result) {
+        if (!result.docId) {
+          console.log("No Google Doc ID found");
+          sendResponse({success: false, error: "No Google Doc ID set. Please open extension popup and set a Doc ID"});
+          return;
+        }
+      
       console.log("Sending text to Google Doc without requiring doc tab to be active");
       
-      // Add the copied text to the Google Doc
-      appendToGoogleDoc(result.docId, request.text, request.url, request.title)
-        .then(() => {
+      // Check if we should include source URLs
+      chrome.storage.local.get(['includeSourceUrls'], function(settings) {
+        const includeSourceUrls = settings.includeSourceUrls;
+        const sourceUrl = includeSourceUrls ? request.url : null;
+        const sourceTitle = includeSourceUrls ? request.title : null;
+        
+        // Add the copied text to the Google Doc
+        appendToGoogleDoc(result.docId, request.text, sourceUrl, sourceTitle)
+          .then(() => {
           console.log("Successfully added text to Google Doc");
           sendResponse({success: true});
         })
@@ -205,6 +228,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
             });
           }
         });
+      });
     });
     return true; // Keep the message channel open for async response
   }
